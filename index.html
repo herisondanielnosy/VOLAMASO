@@ -74,7 +74,27 @@ footer{text-align:center;padding:22px;font-size:11px;color:#8290a2}
 <div class="field"><label for="signupPassword">Mot de passe</label><input id="signupPassword" type="password" minlength="6" placeholder="6 caractères minimum" autocomplete="new-password"></div>
 <button class="full add" id="signupBtn">Créer mon compte</button><p id="authMessage" class="message"></p>
 </section>
+<section id="resetPasswordSection" class="section authbox hidden">
+  <h2>Réinitialiser le mot de passe</h2>
+  <p>Entrez votre nouveau mot de passe.</p>
 
+  <div class="field">
+    <label for="newPassword">Nouveau mot de passe</label>
+    <input id="newPassword" type="password" minlength="6"
+      placeholder="6 caractères minimum" autocomplete="new-password">
+  </div>
+
+  <div class="field">
+    <label for="confirmPassword">Confirmer le mot de passe</label>
+    <input id="confirmPassword" type="password" minlength="6"
+      placeholder="Répétez le mot de passe" autocomplete="new-password">
+  </div>
+
+  <button class="full add" id="updatePasswordBtn">
+    Enregistrer le nouveau mot de passe
+  </button>
+  <p id="resetPasswordMessage" class="message"></p>
+</section>
 <div id="dashboard" class="hidden">
 <div class="toolbar no-print"><div><h2>Tableau de bord</h2><p class="smallnote" id="welcome">Bienvenue</p></div><button class="soft" id="refreshBtn">↻ Actualiser</button></div>
 <section class="balance"><small>Solde disponible</small><h1 id="balance">0 Ar</h1><small>Calculé à partir de vos transactions</small></section>
