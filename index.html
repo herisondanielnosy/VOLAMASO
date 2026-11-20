@@ -625,31 +625,44 @@ $('csvBtn').addEventListener('click',() => {
 $('pdfBtn').addEventListener('click',() => window.print());
 
 async function initializeApp() {
+  let isPasswordRecovery = false;
+
   try {
     setStatus('Connexion à Supabase...');
+
+    supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'PASSWORD_RECOVERY') {
+        isPasswordRecovery = true;
+        showPasswordRecovery();
+        setStatus('Entrez votre nouveau mot de passe.');
+      }
+
+      if (event === 'SIGNED_OUT') {
+        showLogin();
+        setStatus('Vous êtes déconnecté.');
+      }
+    });
+
     const {data,error} = await supabase.auth.getSession();
     if (error) throw error;
 
-    if (data.session?.user) {
+    if (isPasswordRecovery) {
+      showPasswordRecovery();
+      setStatus('Entrez votre nouveau mot de passe.');
+    } else if (data.session?.user) {
       await showDashboard(data.session.user);
     } else {
       showLogin();
       setStatus('Veuillez vous connecter.');
     }
 
-    supabase.auth.onAuthStateChange((event,session) => {
-      if (event === 'SIGNED_OUT') {
-        showLogin();
-        setStatus('Vous êtes déconnecté.');
-      }
-    });
   } catch (error) {
     showLogin();
     setStatus('Erreur de démarrage : ' + (error.message || String(error)),true);
     setMessage('authMessage','Vérifiez le fichier supabase.js et la connexion internet.',true);
   }
 }
-
+  
 initializeApp();
 </script>
 </body>
