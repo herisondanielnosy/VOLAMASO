@@ -194,6 +194,47 @@ function showPasswordRecovery() {
   $('dashboard').classList.add('hidden');
   $('resetPasswordSection').classList.remove('hidden');
 }
+  
+$('updatePasswordBtn').addEventListener('click', async () => {
+  const password = $('newPassword').value;
+  const confirmPassword = $('confirmPassword').value;
+
+  if (!password || !confirmPassword) {
+    return setMessage('resetPasswordMessage', 'Remplissez les deux champs.', true);
+  }
+
+  if (password.length < 6) {
+    return setMessage('resetPasswordMessage', '6 caractères minimum.', true);
+  }
+
+  if (password !== confirmPassword) {
+    return setMessage('resetPasswordMessage', 'Les mots de passe ne correspondent pas.', true);
+  }
+
+  const button = $('updatePasswordBtn');
+  button.disabled = true;
+
+  try {
+    const { error } = await supabase.auth.updateUser({
+      password: password
+    });
+
+    if (error) throw error;
+
+    await supabase.auth.signOut();
+    showLogin();
+    $('newPassword').value = '';
+    $('confirmPassword').value = '';
+
+    setMessage('authMessage', 'Mot de passe modifié avec succès. Connectez-vous.');
+    setStatus('Nouveau mot de passe enregistré.');
+  } catch (error) {
+    setMessage('resetPasswordMessage', 'Erreur : ' + error.message, true);
+  } finally {
+    button.disabled = false;
+  }
+});
+  
 function showDashboardShell(user) {
   currentUser = user;
   $('authSection').classList.add('hidden');
