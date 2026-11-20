@@ -181,10 +181,18 @@ function setMessage(id, message, isError=false) {
   $(id).textContent = message;
   $(id).className = 'message ' + (isError ? 'err' : 'ok');
 }
-function showLogin() {
+  function showLogin() {
   currentUser = null;
   $('dashboard').classList.add('hidden');
+  $('resetPasswordSection').classList.add('hidden');
   $('authSection').classList.remove('hidden');
+}
+
+function showPasswordRecovery() {
+  currentUser = null;
+  $('authSection').classList.add('hidden');
+  $('dashboard').classList.add('hidden');
+  $('resetPasswordSection').classList.remove('hidden');
 }
 function showDashboardShell(user) {
   currentUser = user;
