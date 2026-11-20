@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#102747">
+<title>VOLAMASO V2.2 - Gestion financière</title>
+<style>
+:root{--navy:#102747;--blue:#1b4775;--gold:#d6a83e;--bg:#f3f5f9;--ink:#172b49;--muted:#718096;--green:#15945b;--red:#c64c4c;--line:#e8edf3}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Arial,sans-serif;background:var(--bg);color:var(--ink);min-height:100vh}
+header{background:var(--navy);color:white;padding:20px 16px;border-bottom:3px solid var(--gold)}
+.head{max-width:1050px;margin:auto;display:flex;justify-content:space-between;align-items:center;gap:12px}
+.brand{color:#e4b94f;font-size:25px;font-weight:bold;letter-spacing:2px}
+.head p{font-size:12px;color:#dce5f2;margin-top:5px}
+.version{font-size:11px;border:1px solid #ffffff55;border-radius:20px;padding:6px 10px;color:#f5d98e}
+main{max-width:1050px;margin:auto;padding:20px 15px}
+.hidden{display:none!important}
+.status{background:white;padding:12px;border-radius:10px;margin-bottom:18px;font-size:13px;border-left:4px solid var(--gold);overflow-wrap:anywhere}
+.section,.card{background:white;border-radius:13px;padding:18px;margin-bottom:18px;box-shadow:0 3px 12px #00000008}
+h2{font-size:18px;margin-bottom:15px}
+.balance{background:linear-gradient(135deg,var(--navy),var(--blue));color:white;border-radius:16px;padding:24px 20px;margin-bottom:18px}
+.balance small{color:#dce5f2}.balance h1{color:#e4b94f;font-size:32px;margin:10px 0}
+.cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-bottom:18px}
+.card{margin:0;padding:16px}.card p{font-size:12px;color:var(--muted);margin-bottom:9px}
+.card h3{font-size:17px;overflow-wrap:anywhere}.green{color:var(--green)}.red{color:var(--red)}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.field{margin-bottom:12px}
+label{display:block;font-size:12px;font-weight:bold;margin-bottom:6px;color:#52627a}
+input,select,textarea{width:100%;padding:12px;border:1px solid #d5dce6;border-radius:9px;font-size:14px;background:white;color:var(--ink);font-family:inherit}
+textarea{resize:vertical;min-height:65px}
+input:focus,select:focus,textarea:focus{outline:2px solid #d6a83e55;border-color:var(--gold)}
+button{border:0;border-radius:9px;padding:12px 14px;font-size:13px;font-weight:bold;cursor:pointer;background:var(--navy);color:white}
+button:disabled{opacity:.5;cursor:wait}.full{width:100%}.add{background:var(--green)}
+.danger{background:var(--red)}.soft{background:#edf2f7;color:var(--navy)}.logout{background:#68778c}
+.btnrow{display:flex;gap:8px;flex-wrap:wrap}.btnrow button{flex:1}
+.message{font-size:13px;margin-top:10px;overflow-wrap:anywhere}.ok{color:var(--green)}.err{color:var(--red)}
+.toolbar{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:12px}
+.toolbar h2{margin:0}.filters{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:8px;margin:12px 0}
+.transaction{padding:13px 0;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;gap:10px}
+.transaction:last-child{border-bottom:0}.tx-title{font-size:13px;font-weight:bold;margin-bottom:5px}
+.transaction small{font-size:11px;color:#8290a2;display:block;overflow-wrap:anywhere}
+.tx-amount{font-size:14px;font-weight:bold;white-space:nowrap}
+.tx-actions{display:flex;gap:6px;margin-top:7px}.tx-actions button{font-size:11px;padding:6px 9px}
+.empty{text-align:center;padding:22px 5px;color:#8290a2;font-size:13px}
+.category-row{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--line);font-size:13px}
+.pill{font-size:10px;border-radius:20px;padding:4px 8px;background:#edf2f7;color:#52627a}
+.pill.in{background:#e6f6ee;color:var(--green)}.pill.out{background:#fff0f0;color:var(--red)}
+.profileline{font-size:13px;color:#52627a;overflow-wrap:anywhere}
+footer{text-align:center;padding:22px;font-size:11px;color:#8290a2}
+.authbox{max-width:520px;margin:22px auto}
+.authbox hr{margin:20px 0;border:0;border-top:1px solid var(--line)}
+.chartbar{height:10px;border-radius:20px;background:#edf1f6;overflow:hidden;margin-top:8px}
+.chartbar span{display:block;height:100%;border-radius:20px;background:var(--green)}
+.chartbar.exp span{background:var(--red)}.smallnote{font-size:11px;color:var(--muted);margin-top:8px}
+@media(max-width:700px){.cards{grid-template-columns:1fr 1fr}.cards .card:last-child{grid-column:1/-1}.grid2{grid-template-columns:1fr}.filters{grid-template-columns:1fr 1fr}.filters input:first-child{grid-column:1/-1}.toolbar{align-items:flex-start;flex-direction:column}.head{align-items:flex-start}.balance h1{font-size:28px}}
+@media(max-width:380px){main{padding:14px 10px}.section{padding:14px}.balance h1{font-size:24px}.cards{gap:8px}.card{padding:12px 9px}.card h3{font-size:14px}}
+@media print{body{background:white}.no-print,header,.status,footer,#authSection,.filters,.tx-actions,.logout,#categorySection,#profileSection{display:none!important}main{max-width:none;padding:0}.section,.card,.balance{box-shadow:none;border:1px solid #ddd;break-inside:avoid}.balance{background:white;color:#111}.balance h1{color:#111}.balance small{color:#333}.cards{grid-template-columns:repeat(3,1fr)}.transaction{break-inside:avoid}}
+</style>
+</head>
+<body>
+<header><div class="head"><div><div class="brand">VOLAMASO</div><p>Votre gestion financière simplifiée</p></div><span class="version">VERSION 2.2</span></div></header>
+<main>
+<div class="status" id="status">Démarrage de VOLAMASO...</div>
+
+<section id="authSection" class="section authbox hidden">
+<h2>Connexion</h2>
+<div class="field"><label for="loginEmail">Adresse email</label><input id="loginEmail" type="email" autocomplete="username" placeholder="Adresse email"></div>
+<div class="field"><label for="loginPassword">Mot de passe</label><input id="loginPassword" type="password" autocomplete="current-password" placeholder="Mot de passe"></div>
+<button class="full" id="loginBtn">Se connecter</button>
+<hr><h2>Créer un compte</h2>
+<div class="field"><label for="fullName">Nom complet</label><input id="fullName" placeholder="Nom complet" autocomplete="name"></div>
+<div class="field"><label for="signupEmail">Adresse email</label><input id="signupEmail" type="email" placeholder="Adresse email" autocomplete="email"></div>
+<div class="field"><label for="signupPassword">Mot de passe</label><input id="signupPassword" type="password" minlength="6" placeholder="6 caractères minimum" autocomplete="new-password"></div>
+<button class="full add" id="signupBtn">Créer mon compte</button><p id="authMessage" class="message"></p>
+</section>
+
+<div id="dashboard" class="hidden">
+<div class="toolbar no-print"><div><h2>Tableau de bord</h2><p class="smallnote" id="welcome">Bienvenue</p></div><button class="soft" id="refreshBtn">↻ Actualiser</button></div>
+<section class="balance"><small>Solde disponible</small><h1 id="balance">0 Ar</h1><small>Calculé à partir de vos transactions</small></section>
+<div class="cards">
+<div class="card"><p>Entrées d'argent</p><h3 class="green" id="totalIncome">0 Ar</h3></div>
+<div class="card"><p>Sorties d'argent</p><h3 class="red" id="totalExpense">0 Ar</h3></div>
+<div class="card"><p>Nombre d'opérations</p><h3 id="totalCount">0</h3></div>
+</div>
+<div class="grid2">
+<section class="section" id="operationSection">
+<h2 id="formTitle">Nouvelle opération</h2>
+<div class="field"><label for="type">Type d'opération</label><select id="type"><option value="income">Entrée d'argent</option><option value="expense">Sortie d'argent</option></select></div>
+<div class="field"><label for="category">Catégorie</label><select id="category"><option value="">Chargement...</option></select></div>
+<div class="field"><label for="amount">Montant en Ariary</label><input id="amount" type="number" min="1" step="1" inputmode="numeric" placeholder="Exemple : 50000"></div>
+<div class="field"><label for="description">Description (facultatif)</label><textarea id="description" placeholder="Détails de l'opération"></textarea></div>
+<div class="field"><label for="date">Date</label><input id="date" type="date"></div>
+<button class="full add" id="saveBtn">Enregistrer l'opération</button>
+<button class="full soft hidden" id="cancelEditBtn" style="margin-top:8px">Annuler la modification</button>
+<p id="operationMessage" class="message"></p>
+</section>
+<section class="section">
+<h2>Résumé des dépenses</h2><p class="profileline">Répartition globale des entrées et sorties</p>
+<div style="margin-top:18px"><div style="display:flex;justify-content:space-between"><strong style="font-size:13px">Entrées</strong><strong id="incomePercent" style="font-size:13px">0%</strong></div><div class="chartbar"><span id="incomeBar" style="width:0%"></span></div></div>
+<div style="margin-top:18px"><div style="display:flex;justify-content:space-between"><strong style="font-size:13px">Sorties</strong><strong id="expensePercent" style="font-size:13px">0%</strong></div><div class="chartbar exp"><span id="expenseBar" style="width:0%"></span></div></div>
+<p class="smallnote">Les pourcentages sont calculés sur le total des entrées et sorties.</p>
+<div class="btnrow no-print" style="margin-top:20px"><button id="csvBtn" class="soft">Exporter CSV</button><button id="pdfBtn" class="soft">Imprimer / PDF</button></div>
+</section>
+</div>
+<section class="section">
+<div class="toolbar"><h2>Historique des opérations</h2><span class="pill" id="shownCount">0 opération</span></div>
+<div class="filters no-print"><input id="searchInput" placeholder="Rechercher..." aria-label="Rechercher"><select id="filterType"><option value="all">Tous les types</option><option value="income">Entrées</option><option value="expense">Sorties</option></select><select id="filterCategory"><option value="all">Toutes catégories</option></select><input id="filterDate" type="month" aria-label="Filtrer par mois"></div>
+<div id="transactions"><p class="empty">Chargement...</p></div>
+</section>
+<section class="section no-print" id="categorySection">
+<h2>Gestion des catégories</h2><div class="grid2"><div>
+<div class="field"><label for="newCategoryName">Nom de la catégorie</label><input id="newCategoryName" placeholder="Exemple : Santé"></div>
+<div class="field"><label for="newCategoryType">Type</label><select id="newCategoryType"><option value="income">Entrée d'argent</option><option value="expense">Sortie d'argent</option></select></div>
+<button class="full" id="addCategoryBtn">Ajouter une catégorie</button><p id="categoryMessage" class="message"></p>
+</div><div id="categoryList"><p class="empty">Chargement des catégories...</p></div></div>
+</section>
+<section class="section no-print" id="profileSection"><h2>Mon compte</h2><p class="profileline" id="profile"></p><button class="logout full" id="logoutBtn" style="margin-top:14px">Déconnexion</button></section>
+</div>
+</main>
+<footer>VOLAMASO V2.2 © 2026 - Gestion financière</footer>
+
+<script type="module">
+import { supabase } from './supabase.js';
+
+const $ = (id) => document.getElementById(id);
+let currentUser = null;
+let categories = [];
+let allTransactions = [];
+let editingId = null;
+
+const defaultCategories = [
+  {name:'Karama',transaction_type:'income'},
+  {name:'Varotra',transaction_type:'income'},
+  {name:'Asa fanampiny',transaction_type:'income'},
+  {name:'Fanomezana',transaction_type:'income'},
+  {name:'Hafa',transaction_type:'income'},
+  {name:'Sakafo',transaction_type:'expense'},
+  {name:'Fitaterana',transaction_type:'expense'},
+  {name:'Hofan-trano',transaction_type:'expense'},
+  {name:'Jiro sy rano',transaction_type:'expense'},
+  {name:'Fahasalamana',transaction_type:'expense'},
+  {name:'Fianarana',transaction_type:'expense'},
+  {name:'Fifandraisana',transaction_type:'expense'},
+  {name:'Tahiry',transaction_type:'expense'},
+  {name:'Hafa',transaction_type:'expense'}
+];
+
+function localDate() {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+function money(value) {
+  return new Intl.NumberFormat('fr-FR',{maximumFractionDigits:0}).format(Number(value)||0) + ' Ar';
+}
+function setStatus(message, isError=false) {
+  $('status').textContent = message;
+  $('status').style.borderLeftColor = isError ? '#c64c4c' : '#15945b';
+}
+function setMessage(id, message, isError=false) {
+  $(id).textContent = message;
+  $(id).className = 'message ' + (isError ? 'err' : 'ok');
+}
+function showLogin() {
+  currentUser = null;
+  $('dashboard').classList.add('hidden');
+  $('authSection').classList.remove('hidden');
+}
+function showDashboardShell(user) {
+  currentUser = user;
+  $('authSection').classList.add('hidden');
+  $('dashboard').classList.remove('hidden');
+  $('profile').textContent = 'Connecté : ' + (user.email || '');
+  $('welcome').textContent = 'Bienvenue ' + (user.user_metadata?.full_name || user.email || '');
+  $('date').value = localDate();
+}
+async function showDashboard(user) {
+  showDashboardShell(user);
+  setStatus('Compte connecté. Chargement des données...');
+  try {
+    await loadCategories();
+    await loadTransactions();
+    setStatus('✓ Compte connecté à VOLAMASO.');
+  } catch (error) {
+    setStatus('Erreur de chargement : ' + (error.message || error), true);
+  }
+}
+
+async function loadCategories() {
+  const {data,error} = await supabase.from('categories')
+    .select('id,name,transaction_type')
+    .eq('user_id',currentUser.id)
+    .order('name');
+  if (error) throw error;
+  categories = data || [];
+
+  const missing = defaultCategories.filter(item =>
+    !categories.some(c => c.name === item.name && c.transaction_type === item.transaction_type)
+  );
+  if (missing.length) {
+    const {error:insertError} = await supabase.from('categories')
+      .insert(missing.map(item => ({...item,user_id:currentUser.id})));
+    if (insertError) throw insertError;
+
+    const {data:updated,error:reloadError} = await supabase.from('categories')
+      .select('id,name,transaction_type')
+      .eq('user_id',currentUser.id)
+      .order('name');
+    if (reloadError) throw reloadError;
+    categories = updated || [];
+  }
+  updateCategoryOptions();
+  renderCategoryList();
+}
+
+function updateCategoryOptions() {
+  const selectedType = $('type').value;
+  const categorySelect = $('category');
+  const oldCategory = categorySelect.value;
+  categorySelect.innerHTML = '';
+
+  const matching = categories.filter(c => c.transaction_type === selectedType);
+  matching.forEach(c => {
+    const option = document.createElement('option');
+    option.value = c.id;
+    option.textContent = c.name;
+    categorySelect.appendChild(option);
+  });
+  if (!matching.length) {
+    const option = document.createElement('option');
+    option.value = '';
+    option.textContent = 'Aucune catégorie disponible';
+    categorySelect.appendChild(option);
+  } else if (matching.some(c => c.id === oldCategory)) {
+    categorySelect.value = oldCategory;
+  }
+
+  const filter = $('filterCategory');
+  const oldFilter = filter.value;
+  filter.innerHTML = '<option value="all">Toutes catégories</option>';
+  categories.forEach(c => {
+    const option = document.createElement('option');
+    option.value = c.name;
+    option.textContent = c.name + (c.transaction_type === 'income' ? ' (Entrée)' : ' (Sortie)');
+    filter.appendChild(option);
+  });
+  if ([...filter.options].some(o => o.value === oldFilter)) filter.value = oldFilter;
+}
+
+function renderCategoryList() {
+  const container = $('categoryList');
+  container.innerHTML = '';
+  if (!categories.length) {
+    container.innerHTML = '<p class="empty">Aucune catégorie.</p>';
+    return;
+  }
+  categories.forEach(c => {
+    const row = document.createElement('div');
+    row.className = 'category-row';
+    const name = document.createElement('span');
+    name.textContent = c.name;
+    const tag = document.createElement('span');
+    tag.className = 'pill';
+    tag.textContent = c.transaction_type === 'income' ? 'Entrée' : 'Sortie';
+    row.append(name,tag);
+    container.appendChild(row);
+  });
+}
+
+async function loadTransactions() {
+  if (!currentUser) return;
+  $('transactions').innerHTML = '<p class="empty">Chargement...</p>';
+  const {data,error} = await supabase.from('transactions')
+    .select('id,user_id,transaction_type,amount,description,transaction_date,category_name')
+    .eq('user_id',currentUser.id)
+    .order('transaction_date',{ascending:false})
+    .order('id',{ascending:false});
+  if (error) throw error;
+  allTransactions = data || [];
+  updateDashboard();
+  renderTransactions();
+}
+
+function updateDashboard() {
+  let income = 0;
+  let expense = 0;
+  allTransactions.forEach(t => {
+    const amount = Number(t.amount) || 0;
+    if (t.transaction_type === 'income') income += amount;
+    if (t.transaction_type === 'expense') expense += amount;
+  });
+  $('totalIncome').textContent = money(income);
+  $('totalExpense').textContent = money(expense);
+  $('balance').textContent = money(income-expense);
+  $('totalCount').textContent = String(allTransactions.length);
+
+  const total = income + expense;
+  const incomePercent = total ? Math.round(income/total*100) : 0;
+  const expensePercent = total ? Math.round(expense/total*100) : 0;
+  $('incomePercent').textContent = incomePercent + '%';
+  $('expensePercent').textContent = expensePercent + '%';
+  $('incomeBar').style.width = incomePercent + '%';
+  $('expenseBar').style.width = expensePercent + '%';
+}
+
+function renderTransactions() {
+  const query = $('searchInput').value.trim().toLowerCase();
+  const type = $('filterType').value;
+  const category = $('filterCategory').value;
+  const month = $('filterDate').value;
+
+  const filtered = allTransactions.filter(t =>
+    (type === 'all' || t.transaction_type === type) &&
+    (category === 'all' || t.category_name === category) &&
+    (!month || (t.transaction_date || '').startsWith(month)) &&
+    (!query || [t.category_name,t.description,t.transaction_date,String(t.amount)]
+      .join(' ').toLowerCase().includes(query))
+  );
+
+  $('transactions').innerHTML = '';
+  $('shownCount').textContent = filtered.length + ' opération(s)';
+  if (!filtered.length) {
+    $('transactions').innerHTML = '<p class="empty">Aucune opération ne correspond à votre recherche.</p>';
+    return;
+  }
+
+  filtered.forEach(t => {
+    const isIncome = t.transaction_type === 'income';
+    const item = document.createElement('div');
+    item.className = 'transaction';
+
+    const left = document.createElement('div');
+    left.style.minWidth = '0';
+    const title = document.createElement('div');
+    title.className = 'tx-title';
+    title.textContent = t.category_name || (isIncome ? 'Entrée' : 'Sortie');
+    const detail = document.createElement('small');
+    detail.textContent = (t.description || 'Sans description') + ' • ' + (t.transaction_date || '');
+    const tag = document.createElement('span');
+    tag.className = 'pill ' + (isIncome ? 'in' : 'out');
+    tag.textContent = isIncome ? 'ENTRÉE' : 'SORTIE';
+    tag.style.display = 'inline-block';
+    tag.style.marginTop = '6px';
+    left.append(title,detail,tag);
+
+    const right = document.createElement('div');
+    right.style.textAlign = 'right';
+    const amount = document.createElement('div');
+    amount.className = 'tx-amount ' + (isIncome ? 'green' : 'red');
+    amount.textContent = (isIncome ? '+ ' : '− ') + money(t.amount);
+
+    const actions = document.createElement('div');
+    actions.className = 'tx-actions no-print';
+    const edit = document.createElement('button');
+    edit.className = 'soft';
+    edit.textContent = 'Modifier';
+    edit.addEventListener('click',() => editTransaction(t));
+    const remove = document.createElement('button');
+    remove.className = 'danger';
+    remove.textContent = 'Supprimer';
+    remove.addEventListener('click',() => deleteTransaction(t.id));
+    actions.append(edit,remove);
+    right.append(amount,actions);
+    item.append(left,right);
+    $('transactions').appendChild(item);
+  });
+}
+
+function resetForm() {
+  editingId = null;
+  $('amount').value = '';
+  $('description').value = '';
+  $('date').value = localDate();
+  $('formTitle').textContent = 'Nouvelle opération';
+  $('saveBtn').textContent = 'Enregistrer l’opération';
+  $('cancelEditBtn').classList.add('hidden');
+}
+function editTransaction(t) {
+  editingId = t.id;
+  $('type').value = t.transaction_type;
+  updateCategoryOptions();
+  const category = categories.find(c => c.name === t.category_name && c.transaction_type === t.transaction_type);
+  $('category').value = category?.id || '';
+  $('amount').value = t.amount;
+  $('description').value = t.description || '';
+  $('date').value = t.transaction_date || localDate();
+  $('formTitle').textContent = 'Modifier une opération';
+  $('saveBtn').textContent = 'Enregistrer les modifications';
+  $('cancelEditBtn').classList.remove('hidden');
+  $('operationMessage').textContent = '';
+  $('operationSection').scrollIntoView({behavior:'smooth',block:'start'});
+}
+async function deleteTransaction(id) {
+  if (!confirm('Tena hofafana ve ity transaction ity ?')) return;
+  try {
+    const {error} = await supabase.from('transactions').delete()
+      .eq('id',id).eq('user_id',currentUser.id);
+    if (error) throw error;
+    setMessage('operationMessage','Transaction supprimée.');
+    await loadTransactions();
+  } catch (error) {
+    setMessage('operationMessage','Erreur : ' + error.message,true);
+  }
+}
+
+$('type').addEventListener('change',updateCategoryOptions);
+$('saveBtn').addEventListener('click',async() => {
+  if (!currentUser) return;
+  const type = $('type').value;
+  const category = categories.find(c => c.id === $('category').value);
+  const amount = Number($('amount').value);
+  const description = $('description').value.trim();
+  const date = $('date').value;
+
+  if (!category) return setMessage('operationMessage','Choisissez une catégorie.',true);
+  if (!Number.isSafeInteger(amount) || amount <= 0) return setMessage('operationMessage','Saisissez un montant entier valide.',true);
+  if (!date) return setMessage('operationMessage','Choisissez une date.',true);
+
+  const button = $('saveBtn');
+  button.disabled = true;
+  try {
+    const payload = {
+      transaction_type:type,
+      amount,
+      category_name:category.name,
+      description:description || null,
+      transaction_date:date
+    };
+    let result;
+    if (editingId) {
+      result = await supabase.from('transactions').update(payload)
+        .eq('id',editingId).eq('user_id',currentUser.id);
+    } else {
+      result = await supabase.from('transactions').insert({...payload,user_id:currentUser.id});
+    }
+    if (result.error) throw result.error;
+    setMessage('operationMessage',editingId ? 'Modification enregistrée.' : 'Opération enregistrée.');
+    resetForm();
+    await loadTransactions();
+  } catch (error) {
+    setMessage('operationMessage','Erreur : ' + error.message,true);
+  } finally {
+    button.disabled = false;
+  }
+});
+$('cancelEditBtn').addEventListener('click',resetForm);
+
+$('loginBtn').addEventListener('click',async() => {
+  const email = $('loginEmail').value.trim();
+  const password = $('loginPassword').value;
+  if (!email || !password) return setMessage('authMessage','Email et mot de passe obligatoires.',true);
+  const button = $('loginBtn');
+  button.disabled = true;
+  setStatus('Connexion en cours...');
+  try {
+    const {data,error} = await supabase.auth.signInWithPassword({email,password});
+    if (error) throw error;
+    await showDashboard(data.user);
+  } catch (error) {
+    setMessage('authMessage','Erreur : ' + error.message,true);
+    setStatus('Connexion impossible.',true);
+  } finally {
+    button.disabled = false;
+  }
+});
+
+$('signupBtn').addEventListener('click',async() => {
+  const fullName = $('fullName').value.trim();
+  const email = $('signupEmail').value.trim();
+  const password = $('signupPassword').value;
+  if (!fullName || !email || !password) return setMessage('authMessage','Remplissez tous les champs.',true);
+  if (password.length < 6) return setMessage('authMessage','Mot de passe : 6 caractères minimum.',true);
+
+  const button = $('signupBtn');
+  button.disabled = true;
+  try {
+    const {data,error} = await supabase.auth.signUp({
+      email,password,options:{data:{full_name:fullName}}
+    });
+    if (error) throw error;
+    if (data.session && data.user) {
+      await showDashboard(data.user);
+    } else {
+      setMessage('authMessage','Compte créé. Vérifiez votre email pour confirmer votre inscription.');
+    }
+  } catch (error) {
+    setMessage('authMessage','Erreur : ' + error.message,true);
+  } finally {
+    button.disabled = false;
+  }
+});
+
+$('logoutBtn').addEventListener('click',async() => {
+  try {
+    const {error} = await supabase.auth.signOut();
+    if (error) throw error;
+    showLogin();
+    setStatus('Vous êtes déconnecté.');
+  } catch (error) {
+    setStatus('Erreur de déconnexion : ' + error.message,true);
+  }
+});
+
+$('refreshBtn').addEventListener('click',async() => {
+  try {
+    await loadCategories();
+    await loadTransactions();
+    setStatus('Données actualisées.');
+  } catch (error) {
+    setStatus('Erreur : ' + error.message,true);
+  }
+});
+
+['searchInput','filterType','filterCategory','filterDate'].forEach(id => {
+  $(id).addEventListener('input',renderTransactions);
+  $(id).addEventListener('change',renderTransactions);
+});
+
+$('addCategoryBtn').addEventListener('click',async() => {
+  const name = $('newCategoryName').value.trim();
+  const type = $('newCategoryType').value;
+  if (!name) return setMessage('categoryMessage','Entrez le nom de la catégorie.',true);
+  if (categories.some(c => c.name.toLowerCase() === name.toLowerCase() && c.transaction_type === type)) {
+    return setMessage('categoryMessage','Cette catégorie existe déjà.',true);
+  }
+  try {
+    const {error} = await supabase.from('categories').insert({
+      user_id:currentUser.id,name,transaction_type:type
+    });
+    if (error) throw error;
+    $('newCategoryName').value = '';
+    setMessage('categoryMessage','Catégorie ajoutée.');
+    await loadCategories();
+  } catch (error) {
+    setMessage('categoryMessage','Erreur : ' + error.message,true);
+  }
+});
+
+$('csvBtn').addEventListener('click',() => {
+  if (!allTransactions.length) return alert('Aucune transaction à exporter.');
+  const rows = [
+    ['Date','Type','Catégorie','Description','Montant'],
+    ...allTransactions.map(t => [t.transaction_date,t.transaction_type,t.category_name,t.description || '',t.amount])
+  ];
+  const csv = '\uFEFF' + rows.map(row =>
+    row.map(value => '"' + String(value ?? '').replace(/"/g,'""') + '"').join(';')
+  ).join('\n');
+  const blob = new Blob([csv],{type:'text/csv;charset=utf-8;'});
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = 'VOLAMASO_transactions.csv';
+  link.click();
+  URL.revokeObjectURL(url);
+});
+$('pdfBtn').addEventListener('click',() => window.print());
+
+async function initializeApp() {
+  try {
+    setStatus('Connexion à Supabase...');
+    const {data,error} = await supabase.auth.getSession();
+    if (error) throw error;
+
+    if (data.session?.user) {
+      await showDashboard(data.session.user);
+    } else {
+      showLogin();
+      setStatus('Veuillez vous connecter.');
+    }
+
+    supabase.auth.onAuthStateChange((event,session) => {
+      if (event === 'SIGNED_OUT') {
+        showLogin();
+        setStatus('Vous êtes déconnecté.');
+      }
+    });
+  } catch (error) {
+    showLogin();
+    setStatus('Erreur de démarrage : ' + (error.message || String(error)),true);
+    setMessage('authMessage','Vérifiez le fichier supabase.js et la connexion internet.',true);
+  }
+}
+
+initializeApp();
+</script>
+</body>
+</html>
