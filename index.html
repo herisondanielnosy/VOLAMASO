@@ -514,6 +514,45 @@ $('saveBtn').addEventListener('click',async() => {
 });
 $('cancelEditBtn').addEventListener('click',resetForm);
 
+$('mfaVerifyBtn').addEventListener('click', async () => {
+  const code = $('mfaCode').value.trim();
+
+  if (!/^\d{6}$/.test(code)) {
+    return setMessage('mfaMessage', 'Entrez un code valide à 6 chiffres.', true);
+  }
+
+  const button = $('mfaVerifyBtn');
+  button.disabled = true;
+
+  try {
+    const { error } = await supabase.auth.mfa.verify({
+      factorId: pendingMfaFactorId,
+      challengeId: pendingMfaChallengeId,
+      code
+    });
+
+    if (error) throw error;
+
+    const user = pendingMfaUser;
+
+    pendingMfaUser = null;
+    pendingMfaFactorId = null;
+    pendingMfaChallengeId = null;
+    pendingMfaMode = null;
+
+    $('mfaSection').classList.add('hidden');
+    $('mfaCode').value = '';
+
+    setMessage('mfaMessage', 'Vérification réussie.');
+
+    await showDashboard(user);
+  } catch (error) {
+    setMessage('mfaMessage', 'Code incorrect ou expiré : ' + error.message, true);
+  } finally {
+    button.disabled = false;
+  }
+});
+  
 $('loginBtn').addEventListener('click',async() => {
   const email = $('loginEmail').value.trim();
   const password = $('loginPassword').value;
