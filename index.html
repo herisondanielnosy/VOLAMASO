@@ -563,7 +563,7 @@ $('loginBtn').addEventListener('click',async() => {
   try {
     const {data,error} = await supabase.auth.signInWithPassword({email,password});
     if (error) throw error;
-    await showDashboard(data.user);
+    await continueAfterLogin(data.user);
   } catch (error) {
     setMessage('authMessage','Erreur : ' + error.message,true);
     setStatus('Connexion impossible.',true);
