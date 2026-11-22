@@ -148,7 +148,10 @@ let currentUser = null;
 let categories = [];
 let allTransactions = [];
 let editingId = null;
-
+let pendingMfaUser = null;
+let pendingMfaFactorId = null;
+let pendingMfaChallengeId = null;
+let pendingMfaMode = null;
 const defaultCategories = [
   {name:'Karama',transaction_type:'income'},
   {name:'Varotra',transaction_type:'income'},
