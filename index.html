@@ -689,12 +689,12 @@ async function initializeApp() {
       showPasswordRecovery();
       setStatus('Entrez votre nouveau mot de passe.');
     } else if (data.session?.user) {
-      await showDashboard(data.session.user);
-    } else {
-      showLogin();
-      setStatus('Veuillez vous connecter.');
+  await continueAfterLogin(data.session.user);
+} else {
+  showLogin();
+  setStatus('Veuillez vous connecter.');
     }
-
+    
   } catch (error) {
     showLogin();
     setStatus('Erreur de démarrage : ' + (error.message || String(error)),true);
