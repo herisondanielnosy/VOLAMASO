@@ -248,7 +248,7 @@ for (const factor of unverifiedFactors) {
     const { data: enrollment, error: enrollError } =
       await supabase.auth.mfa.enroll({
         factorType: 'totp',
-        friendlyName: 'VOLAMASO Admin ' + user.id.slice(0, 8)
+      friendlyName: 'VOLAMASO Admin ' + user.id.slice(0, 8) + ' ' + Date.now()
       });
 
     if (enrollError) throw enrollError;
