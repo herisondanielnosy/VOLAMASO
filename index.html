@@ -152,6 +152,96 @@ let pendingMfaUser = null;
 let pendingMfaFactorId = null;
 let pendingMfaChallengeId = null;
 let pendingMfaMode = null;
+  async function continueAfterLogin(user) {
+  const { data: profile, error: profileError } = await supabase
+    .from('profiles')
+    .select('role,approval_status')
+    .eq('id', user.id)
+    .single();
+
+  if (profileError) throw profileError;
+
+  if (profile.role === 'admin') {
+    if (profile.approval_status !== 'approved') {
+      throw new Error('Compte Admin non approuvé.');
+    }
+
+    const { data: factors, error: factorsError } =
+      await supabase.auth.mfa.listFactors();
+
+    if (factorsError) throw factorsError;
+
+    const verifiedFactor = (factors.totp || [])
+      .find(factor => factor.status === 'verified');
+
+    pendingMfaUser = user;
+
+    if (verifiedFactor) {
+      const { data: aal, error: aalError } =
+        await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
+
+      if (aalError) throw aalError;
+
+      if (aal.currentLevel === 'aal2') {
+        pendingMfaUser = null;
+        await showDashboard(user);
+        return;
+      }
+
+      pendingMfaFactorId = verifiedFactor.id;
+      pendingMfaMode = 'login';
+
+      const { data: challenge, error: challengeError } =
+        await supabase.auth.mfa.challenge({
+          factorId: verifiedFactor.id
+        });
+
+      if (challengeError) throw challengeError;
+
+      pendingMfaChallengeId = challenge.id;
+
+      $('mfaEnrollArea').classList.add('hidden');
+      $('mfaSection').classList.remove('hidden');
+      $('authSection').classList.add('hidden');
+      $('mfaCode').value = '';
+
+      setStatus('Entrez le code Google Authenticator.');
+      return;
+    }
+
+    const { data: enrollment, error: enrollError } =
+      await supabase.auth.mfa.enroll({
+        factorType: 'totp',
+        friendlyName: 'VOLAMASO Admin'
+      });
+
+    if (enrollError) throw enrollError;
+
+    pendingMfaFactorId = enrollment.id;
+    pendingMfaMode = 'enroll';
+
+    const { data: challenge, error: challengeError } =
+      await supabase.auth.mfa.challenge({
+        factorId: enrollment.id
+      });
+
+    if (challengeError) throw challengeError;
+
+    pendingMfaChallengeId = challenge.id;
+
+    $('mfaQr').src = enrollment.totp.qr_code;
+    $('mfaSecret').textContent = enrollment.totp.secret;
+    $('mfaEnrollArea').classList.remove('hidden');
+    $('mfaSection').classList.remove('hidden');
+    $('authSection').classList.add('hidden');
+    $('mfaCode').value = '';
+
+    setStatus('Scannez le QR code avec Google Authenticator.');
+    return;
+  }
+
+  await showDashboard(user);
+  }
 const defaultCategories = [
   {name:'Karama',transaction_type:'income'},
   {name:'Varotra',transaction_type:'income'},
