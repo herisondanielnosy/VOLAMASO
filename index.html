@@ -74,6 +74,30 @@ footer{text-align:center;padding:22px;font-size:11px;color:#8290a2}
 <div class="field"><label for="signupPassword">Mot de passe</label><input id="signupPassword" type="password" minlength="6" placeholder="6 caractères minimum" autocomplete="new-password"></div>
 <button class="full add" id="signupBtn">Créer mon compte</button><p id="authMessage" class="message"></p>
 </section>
+  <section id="mfaSection" class="section authbox hidden">
+  <h2>Protection VOLAMASO</h2>
+
+  <div id="mfaEnrollArea" class="hidden">
+    <p>Scannez ce QR code avec Google Authenticator.</p>
+    <img id="mfaQr" alt="QR Code VOLAMASO"
+      style="display:block;max-width:240px;width:100%;margin:18px auto">
+    <p class="smallnote">Clé de configuration :</p>
+    <p id="mfaSecret" style="overflow-wrap:anywhere"></p>
+  </div>
+
+  <div class="field">
+    <label for="mfaCode">Code à 6 chiffres</label>
+    <input id="mfaCode" type="text" inputmode="numeric"
+      maxlength="6" placeholder="000000"
+      autocomplete="one-time-code">
+  </div>
+
+  <button id="mfaVerifyBtn" class="full">
+    Vérifier le code
+  </button>
+
+  <p id="mfaMessage" class="message"></p>
+  </section>
 <section id="resetPasswordSection" class="section authbox hidden">
   <h2>Réinitialiser le mot de passe</h2>
   <p>Entrez votre nouveau mot de passe.</p>
