@@ -232,7 +232,17 @@ let pendingMfaMode = null;
       setStatus('Entrez le code Google Authenticator.');
       return;
     }
+const unverifiedFactor = (factors.totp || [])
+  .find(factor => factor.status === 'unverified');
 
+if (unverifiedFactor) {
+  const { error: unenrollError } =
+    await supabase.auth.mfa.unenroll({
+      factorId: unverifiedFactor.id
+    });
+
+  if (unenrollError) throw unenrollError;
+}
     const { data: enrollment, error: enrollError } =
       await supabase.auth.mfa.enroll({
         factorType: 'totp',
