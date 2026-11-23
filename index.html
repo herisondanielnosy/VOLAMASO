@@ -176,7 +176,8 @@ let pendingMfaUser = null;
 let pendingMfaFactorId = null;
 let pendingMfaChallengeId = null;
 let pendingMfaMode = null;
-  async function continueAfterLogin(user) {
+
+async function continueAfterLogin(user) {
   const { data: profile, error: profileError } = await supabase
     .from('profiles')
     .select('role,approval_status')
@@ -233,22 +234,23 @@ let pendingMfaMode = null;
       return;
     }
 
-const unverifiedFactors = (factors.totp || [])
-  .filter(factor => factor.status === 'unverified');
+    const unverifiedFactors = (factors.totp || [])
+      .filter(factor => factor.status === 'unverified');
 
-for (const factor of unverifiedFactors) {
-  const { error: unenrollError } =
-    await supabase.auth.mfa.unenroll({
-      factorId: factor.id
-    });
+    for (const factor of unverifiedFactors) {
+      const { error: unenrollError } =
+        await supabase.auth.mfa.unenroll({
+          factorId: factor.id
+        });
 
-  if (unenrollError) throw unenrollError;
-}
-    
+      if (unenrollError) throw unenrollError;
+    }
+
     const { data: enrollment, error: enrollError } =
       await supabase.auth.mfa.enroll({
         factorType: 'totp',
-      friendlyName: 'VOLAMASO Admin ' + user.id.slice(0, 8) + ' ' + Date.now()
+        friendlyName: 'VOLAMASO Admin ' +
+          user.id.slice(0, 8) + ' ' + Date.now()
       });
 
     if (enrollError) throw enrollError;
@@ -276,8 +278,26 @@ for (const factor of unverifiedFactors) {
     return;
   }
 
-  await showDashboard(user);
+  // Fanamarinana ny kaonty mpikambana tsotra
+  if (profile.approval_status === 'pending') {
+    throw new Error(
+      'Votre compte est en attente de validation par l administrateur.'
+    );
   }
+
+  if (profile.approval_status === 'rejected') {
+    throw new Error(
+      'Votre compte a été refusé. Contactez l administrateur.'
+    );
+  }
+
+  if (profile.approval_status !== 'approved') {
+    throw new Error('Accès non autorisé.');
+  }
+
+  await showDashboard(user);
+}
+  
 const defaultCategories = [
   {name:'Karama',transaction_type:'income'},
   {name:'Varotra',transaction_type:'income'},
