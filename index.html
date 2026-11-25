@@ -430,7 +430,104 @@ async function showDashboard(user) {
 
     if (isAdmin) {
       try {
+ async function loadAdminMembers() {
+  const container = $('adminMembers');
+
+  if (!container.dataset.eventsReady) {
+    container.dataset.eventsReady = 'true';
+
+    $('adminRefreshBtn').addEventListener('click', async () => {
+      try {
         await loadAdminMembers();
+        setMessage('adminMessage', 'Liste actualisée.');
+      } catch (error) {
+        setMessage('adminMessage', 'Erreur : ' + error.message, true);
+      }
+    });
+
+    container.addEventListener('click', async event => {
+      const button = event.target.closest('button[data-member-id]');
+      if (!button) return;
+
+      const userId = button.dataset.memberId;
+      const status = button.dataset.status;
+
+      const question = status === 'approved'
+        ? 'Accepter ce membre ?'
+        : 'Refuser ce membre ?';
+
+      if (!confirm(question)) return;
+
+      button.disabled = true;
+
+      try {
+        const { error } = await supabase.rpc('admin_set_member_status', {
+          p_user_id: userId,
+          p_status: status
+        });
+
+        if (error) throw error;
+
+        setMessage('adminMessage', 'Statut modifié avec succès.');
+        await loadAdminMembers();
+      } catch (error) {
+        setMessage('adminMessage', 'Erreur : ' + error.message, true);
+        button.disabled = false;
+      }
+    });
+  }
+
+  container.innerHTML =
+    '<p class="empty">Chargement des membres...</p>';
+
+  const { data, error } = await supabase.rpc('admin_list_members');
+
+  if (error) throw error;
+
+  const members = data || [];
+
+  if (!members.length) {
+    container.innerHTML =
+      '<p class="empty">Aucun membre trouvé.</p>';
+    return;
+  }
+
+  const escapeHTML = value =>
+    String(value ?? '').replace(/[&<>"']/g, char => ({
+      '&': '&amp;',
+      '<': '&lt;',
+      '>': '&gt;',
+      '"': '&quot;',
+      "'": '&#39;'
+    })[char]);
+
+  container.innerHTML = members.map(member => {
+    const status =
+      member.approval_status === 'approved' ? 'Approuvé' :
+      member.approval_status === 'rejected' ? 'Refusé' :
+      'En attente';
+
+    const actions = member.role === 'admin'
+      ? '<p class="smallnote">Administrateur protégé</p>'
+      : `<div class="btnrow">
+          <button class="add" type="button"
+            data-member-id="${escapeHTML(member.id)}"
+            data-status="approved">Accepter</button>
+          <button class="danger" type="button"
+            data-member-id="${escapeHTML(member.id)}"
+            data-status="rejected">Refuser</button>
+        </div>`;
+
+    return `<div class="card" style="margin-bottom:12px">
+      <h3>${escapeHTML(member.full_name || 'Sans nom')}</h3>
+      <p>Téléphone : ${escapeHTML(member.phone || '-')}</p>
+      <p>WhatsApp : ${escapeHTML(member.whatsapp || '-')}</p>
+      <p>Rôle : ${escapeHTML(member.role || '-')}</p>
+      <p>Statut : <strong>${status}</strong></p>
+      ${actions}
+    </div>`;
+  }).join('');
+ }
       } catch (adminError) {
         console.error('Erreur Administration:', adminError);
         setMessage(
