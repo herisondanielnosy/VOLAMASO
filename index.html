@@ -395,15 +395,46 @@ function showDashboardShell(user) {
 async function showDashboard(user) {
   showDashboardShell(user);
   setStatus('Compte connecté. Chargement des données...');
+
   try {
+    const { data: profile, error: profileError } = await supabase
+      .from('profiles')
+      .select('role,approval_status')
+      .eq('id', user.id)
+      .single();
+
+    if (profileError) throw profileError;
+
+    const isAdmin =
+      profile.role === 'admin' &&
+      profile.approval_status === 'approved';
+
+    $('adminSection').classList.toggle('hidden', !isAdmin);
+
     await loadCategories();
     await loadTransactions();
+
+    if (isAdmin) {
+      try {
+        await loadAdminMembers();
+      } catch (adminError) {
+        console.error('Erreur Administration:', adminError);
+        setMessage(
+          'adminMessage',
+          'Erreur : ' + adminError.message,
+          true
+        );
+      }
+    }
+
     setStatus('✓ Compte connecté à VOLAMASO.');
   } catch (error) {
-    setStatus('Erreur de chargement : ' + (error.message || error), true);
+    setStatus(
+      'Erreur de chargement : ' + (error.message || error),
+      true
+    );
   }
 }
-
 async function loadCategories() {
   const {data,error} = await supabase.from('categories')
     .select('id,name,transaction_type')
